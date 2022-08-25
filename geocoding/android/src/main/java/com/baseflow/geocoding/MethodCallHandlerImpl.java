@@ -29,7 +29,6 @@ import io.flutter.plugin.common.StandardMethodCodec;
 final class MethodCallHandlerImpl implements MethodCallHandler {
     private static final String TAG = "MethodCallHandlerImpl";
     private final Geocoding geocoding;
-    private final Handler handler = new Handler(Looper.getMainLooper());
     @Nullable
     private MethodChannel channel;
 
@@ -132,35 +131,19 @@ final class MethodCallHandlerImpl implements MethodCallHandler {
                     longitude,
                     LocaleConverter.fromLanguageTag(languageTag));
             if (addresses == null || addresses.isEmpty()) {
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        result.error(
-                                "NOT_FOUND",
-                                String.format("No address information found for supplied coordinates (latitude: %f, longitude: %f).", latitude, longitude),
-                                null);
-                    }
-                });
+                result.error(
+                        "NOT_FOUND",
+                        String.format("No address information found for supplied coordinates (latitude: %f, longitude: %f).", latitude, longitude),
+                        null);
                 return;
             }
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    result.success(AddressMapper.toAddressHashMapList(addresses));
-                }
-            });
+            result.success(AddressMapper.toAddressHashMapList(addresses));
         } catch (IOException ex) {
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    result.error(
-                            "IO_ERROR",
-                            String.format("A network error occurred trying to lookup the supplied coordinates (latitude: %f, longitude: %f).", latitude, longitude),
-                            null
-                    );
-                }
-            });
-
+            result.error(
+                    "IO_ERROR",
+                    String.format("A network error occurred trying to lookup the supplied coordinates (latitude: %f, longitude: %f).", latitude, longitude),
+                    null
+            );
         }
     }
 }

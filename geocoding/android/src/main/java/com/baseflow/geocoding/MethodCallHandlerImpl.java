@@ -20,6 +20,7 @@ import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
+import io.flutter.plugin.common.StandardMethodCodec;
 
 /**
  * Translates incoming Geocoding MethodCalls into well formed Java function calls for {@link
@@ -28,7 +29,6 @@ import io.flutter.plugin.common.MethodChannel.Result;
 final class MethodCallHandlerImpl implements MethodCallHandler {
     private static final String TAG = "MethodCallHandlerImpl";
     private final Geocoding geocoding;
-    private ExecutorService executor = Executors.newSingleThreadExecutor();
     private final Handler handler = new Handler(Looper.getMainLooper());
     @Nullable
     private MethodChannel channel;
@@ -44,20 +44,10 @@ final class MethodCallHandlerImpl implements MethodCallHandler {
     public void onMethodCall(final MethodCall call, final Result result) {
         switch (call.method) {
             case "locationFromAddress":
-                executor.submit(new Runnable() {
-                    @Override
-                    public void run() {
-                        onLocationFromAddress(call, result);
-                    }
-                });
+                onLocationFromAddress(call, result);
                 break;
             case "placemarkFromCoordinates":
-                executor.submit(new Runnable() {
-                    @Override
-                    public void run() {
-                        onPlacemarkFromCoordinates(call, result);
-                    }
-                });
+                onPlacemarkFromCoordinates(call, result);
                 break;
             default:
                 result.notImplemented();
@@ -77,8 +67,8 @@ final class MethodCallHandlerImpl implements MethodCallHandler {
             Log.wtf(TAG, "Setting a method call handler before the last was disposed.");
             stopListening();
         }
-
-        channel = new MethodChannel(messenger, "flutter.baseflow.com/geocoding");
+        final BinaryMessenger.TaskQueue taskQueue = messenger.makeBackgroundTaskQueue();
+        channel = new MethodChannel(messenger, "flutter.baseflow.com/geocoding", StandardMethodCodec.INSTANCE, taskQueue);
         channel.setMethodCallHandler(this);
     }
 

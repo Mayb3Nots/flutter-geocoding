@@ -11,7 +11,11 @@ dependencies:
   flutter:
     sdk: flutter
 
-  geocoding_platform_interface: ^2.0.0
+  geocoding_platform_interface:
+    git:
+      url: https://github.com/Mayb3Nots/flutter-geocoding
+      ref: addressLine
+      path: geocoding_platform_interface
 
 dev_dependencies:
   flutter_test:
